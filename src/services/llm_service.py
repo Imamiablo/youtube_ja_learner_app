@@ -14,6 +14,10 @@ class LLMService:
         self.model = model.strip()
         self.timeout = timeout
 
+    @property
+    def enabled(self) -> bool:
+        return bool(self.base_url and self.model)
+
     @staticmethod
     def _normalize_base_url(base_url: str) -> str:
         """ Make URL workable both for ollama and openAI"""
