@@ -60,3 +60,18 @@ class LLMService:
                 if isinstance(index, int) and 0 <= index < len(translations):
                     translations[index] = str(item.get("translation", "")).strip()
         return translations
+
+    def _chat(self, *, system_prompt: str, user_prompt: str) -> str:
+        url = f"{self.base_url}/chat/completions"
+        headers = {"Content-Type": "application/json"}
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
+        payload = {
+            "model": self.model,
+            "temperature": 0.1,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ]
+        }
+
