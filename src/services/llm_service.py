@@ -74,4 +74,15 @@ class LLMService:
                 {"role": "user", "content": user_prompt},
             ]
         }
+        try:
+            response = requests.post(url, json=payload, headers=headers, timeout=self.timeout)
+            response.raise_for_status()
+        except requests.exceptions.Timeout as exc:
+            raise RuntimeError(
+                "LLM request Timeout. Try a smaller transcript or check whether your LLM is capable and living"
+            ) from exc
+        except requests.exceptions.RequestException as exc:
+            raise RuntimeError(f"LLM request error: {exc}") from exc
+        data = response.json()
+        return str(data["choices"][0]["message"]["content"])
 
