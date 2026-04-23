@@ -73,7 +73,12 @@ class LLMService:
             target_language: str = "English",
             article_title: str = "",
     ) -> list[dict[str, str]]:
-        pass
+
+        if not self.enabled or not vocab_entries:
+            return [{"translation_text": "", "jlpt_level_estimate": ""} for _ in vocab_entries]
+
+        annotations = {"translation_text": "", "jlpt_level_estimate": ""}
+        return annotations
 
     def contextualize_segment_vocab(
             self,
@@ -83,7 +88,12 @@ class LLMService:
             vocab_entries: list[dict[str, Any]],
             target_language: str = "English",
     ) -> list[dict[str, str]]:
-        pass
+
+        if not self.enabled or not segment_text.strip():
+            return [{"context_translation": "", "context_not": ""} for _ in vocab_entries]
+
+        output = {"context_translation": "", "context_note": ""}
+        return output
 
     def _chat(self, *, system_prompt: str, user_prompt: str) -> str:
         url = f"{self.base_url}/chat/completions"
