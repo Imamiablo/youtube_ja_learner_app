@@ -28,11 +28,17 @@ class LLMService:
         if url.endswith("/v1"):
             return url
         if "localhost:11434" in url or "127.0.0.1:11434" in url:
-            return f"{url}/v1"
+            return f"{url}/v1" # openAI requires this
         return url
 
     def translate_segments(self, segments: list[str], target_language: str = "English") -> list[str]:
+        """
+        Accepts list with segments of text to be translated;
+        Gives it to LLM to generate translation;
+        Returns list with translated segments
 
+        target language: any language model knows
+        """
         if not self.enabled or not segments:
             return ("") * len(segments)
 
@@ -61,6 +67,24 @@ class LLMService:
                     translations[index] = str(item.get("translation", "")).strip()
         return translations
 
+    def annotate_vocab(
+            self,
+            vocab_entries: list[dict[str, Any]],
+            target_language: str = "English",
+            article_title: str = "",
+    ) -> list[dict[str, str]]:
+        pass
+
+    def contextualize_segment_vocab(
+            self,
+            *,
+            article_title: str,
+            segment_text: str,
+            vocab_entries: list[dict[str, Any]],
+            target_language: str = "English",
+    ) -> list[dict[str, str]]:
+        pass
+
     def _chat(self, *, system_prompt: str, user_prompt: str) -> str:
         url = f"{self.base_url}/chat/completions"
         headers = {"Content-Type": "application/json"}
@@ -85,4 +109,35 @@ class LLMService:
             raise RuntimeError(f"LLM request error: {exc}") from exc
         data = response.json()
         return str(data["choices"][0]["message"]["content"])
+
+    @staticmethod
+    def _parse_json_payload(raw_text: str) -> Any:
+        """ Accepts messy LLM answer and returns parsed JSON data if possible """
+
+        # Accept raw text and check whether it works as is for JSON
+        raw_text = raw_text.strip()
+        if not raw_text:
+            return None
+        try:
+            return json.loads(raw_text)
+
+        # raw text might contain extra conversation from LLM
+        except json.decoder.JSONDecodeError:
+            pass
+        # find where JSON starts
+        start_candidates = [idx for idx in (raw_text.find("["), raw_text.find("{")) if idx != -1]
+        if not start_candidates:
+            return None
+        start = min(start_candidates)
+        # find valid JSON structure within raw_text
+        for end in range(len(raw_text), start, -1):
+            snippet = raw_text[start:end]
+            try:
+                return json.loads(snippet)
+            except json.decoder.JSONDecodeError:
+                continue
+        # LLM could not produce JSON-containing string
+        return None
+
+
 
