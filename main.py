@@ -23,7 +23,7 @@ config = None
 db = None
 furigana_service = None
 
-def build_article_service(api_key: str, base_url: str, model: str) -> tuple[ArticleService, TranscriptionService]:
+def build_article_service(api_key: str, base_url: str, model: str) -> tuple[ArticleService, TranscriptService]:
     llm_service = LLMService(api_key=api_key, base_url=base_url, model=model)
     article_service = ArticleService()
     transcription_service = TranscriptService()
