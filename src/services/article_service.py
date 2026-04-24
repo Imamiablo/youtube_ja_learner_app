@@ -41,5 +41,27 @@ class ArticleService:
 
         japanese_texts = [str(item.get("japanese_text", "")) for item in raw_segments]
         translations = [""] * len(japanese_texts)
+        TRANSLATION_BATCH_SIZE = 12
+
+        if self.llm_service.enabled:
+            for start in range(0, len(japanese_texts), TRANSLATION_BATCH_SIZE):
+                chunk = japanese_texts[start:start + TRANSLATION_BATCH_SIZE]
+                translated_chunk = self.llm_service.translate_segments(chunk, target_language=target_language)
+                for offset, value in enumerate(translated_chunk):
+                    index = start + offset
+                    if index < len(translations):
+                        translations[index] = value
+
+        enriched_segments: list[dict[str, Any]] = []
+        for idx, japanese_text in enumerate(japanese_texts):
+            segment = raw_segments[idx]
+            enriched_segments.append({
+                "segment_index": int(segment.get("segment_index", idx)),
+                "start_sec": float(segment.get("start_sec", 0)),
+                "duration_sec": float(segment.get("duration_sec", 0)),
+                "japanese_text": translations[idx] if idx < len(translations) else "",
+                "furigana_html": self.furigana_service.render_ruby_html(japanese_text),
+            })
+
 
         return article_id
