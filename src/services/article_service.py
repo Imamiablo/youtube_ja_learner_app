@@ -63,5 +63,34 @@ class ArticleService:
                 "furigana_html": self.furigana_service.render_ruby_html(japanese_text),
             })
 
+        segments_ids = self.db.insert_segments(article_id, enriched_segments)
+        for idx, segment_id in enumerate(segments_ids):
+            enriched_segments[idx]["db_segment_id"] = segment_id
 
+        VOCAB_BATCH_SIZE = 20
+        vocab_items = self.vocab_service.extract_vocab(enriched_segments, article_title=title)
+        segment_text_by_id = {segment.get("db_segment_id"): segment.get("japanese_text", "") for segment in enriched_segments}
+        annotations: list[dict[str, str]] = []
+        if self.llm_service.enabled:
+            for start in range(0, len(vocab_items), VOCAB_BATCH_SIZE):
+                chunk = vocab_items[start:start + VOCAB_BATCH_SIZE]
+                for item in chunk:
+                    item["source_line_text"] = str(segment_text_by_id.get(item.get("source_segment_id", "") or item.get("source_line_text", "")))
+                annotations.extend(self.llm_service.annotate_vocab(chunk, target_language=target_language, article_title=title))
+
+        for idx, item in enumerate(vocab_items):
+            if idx < len(annotations):
+                item.update(annotations[idx])
+                self._finalize_vocab_item(item)
+
+        if self.llm_service.enabled:
+            self._fill_missing_vicab_fields(vocab_items, target_language=target_language)
+
+        self.db.insert_vocab_items(article_id, vocab_items)
         return article_id
+
+    def _finalize_vocab_item(self, item: dict[str, Any]) -> None:
+        pass
+
+    def _fill_missing_vocab_fields(self, vocab_items: list[dict[str, Any]], *, target_language: str) -> None:
+        pass
