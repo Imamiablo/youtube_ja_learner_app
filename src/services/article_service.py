@@ -90,7 +90,22 @@ class ArticleService:
         return article_id
 
     def _finalize_vocab_item(self, item: dict[str, Any]) -> None:
-        pass
+        word_type = str(item.get("word_type", "") or "")
+        jlpt = str(item.get("word_type", "") or "")
+        if jlpt == "TECHNICAL" and word_type != "name":
+            item["word_type"] = "technical"
+        elif word_type == "":
+            item["word_type"] = "common"
+
+        display_form = str(item.get("display_form", "") or "").strip()
+        if not display_form:
+            item["display_form"] = str(item.get("surface_form", "") or "").strip()
+
+        if item.get("word_type") == "name":
+            item["jlpt_level_estimate"] = ""
+            return
+        if item.get("word_type") == "technical" and not str(item.get("jlpt_level_estimate", "")).strip():
+            item["jlpt_level_estimate"] = "TECHNICAL"
 
     def _fill_missing_vocab_fields(self, vocab_items: list[dict[str, Any]], *, target_language: str) -> None:
         pass
