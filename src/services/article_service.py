@@ -108,4 +108,25 @@ class ArticleService:
             item["jlpt_level_estimate"] = "TECHNICAL"
 
     def _fill_missing_vocab_fields(self, vocab_items: list[dict[str, Any]], *, target_language: str) -> None:
-        pass
+        missing_indexes = [
+            idx for idx, item in enumerate(vocab_items)
+            if not str(item.get("translation_text", "") or "").strip()
+               or not str(item.get("jlpt_level_estimate", "") or "").strip()
+        ]
+        if not missing_indexes:
+            return
+
+        for start in range(0, len(missing_indexes), 12):
+            chunk_indexes = missing_indexes[start:start + 12]
+            chunk = [vocab_items[idx] for idx in chunk_indexes]
+            annotations = self.llm_service.annotate_vocab(chunk, target_language=target_language, article_title="")
+            for chunk_offset, annotation in enumerate(annotations):
+                vocab_index = chunk_indexes[chunk_offset]
+                item = vocab_items[vocab_index]
+                translation = str(annotation.get("translation_text", "") or "").strip()
+                jlpt = str(annotation.get("jlpt_level_estimate", "") or "").strip()
+                if translation and not str(item.get("translation_text", "") or "").strip():
+                    item["translation_text"] = translation
+                if jlpt and not str(item.get("jlpt_level_estimate", "") or "").strip():
+                    item["jlpt_level_estimate"] = jlpt
+                self._finalize_vocab_item(item)
