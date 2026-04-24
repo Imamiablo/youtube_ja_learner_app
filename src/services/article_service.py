@@ -84,7 +84,7 @@ class ArticleService:
                 self._finalize_vocab_item(item)
 
         if self.llm_service.enabled:
-            self._fill_missing_vicab_fields(vocab_items, target_language=target_language)
+            self._fill_missing_vocab_fields(vocab_items, target_language=target_language)
 
         self.db.insert_vocab_items(article_id, vocab_items)
         return article_id
