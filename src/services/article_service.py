@@ -107,6 +107,22 @@ class ArticleService:
         if item.get("word_type") == "technical" and not str(item.get("jlpt_level_estimate", "")).strip():
             item["jlpt_level_estimate"] = "TECHNICAL"
 
+
+        # In case JLPT estimate are garbage 
+        """
+        for candidate in (
+            str(item.get("display_form", "") or ""),
+            str(item.get("orth_base", "") or ""),
+            str(item.get("base_form", "") or ""),
+            str(item.get("surface_form", "") or ""),
+            str(item.get("reading_hiragana", "") or ""),
+        ):
+            override = self.JLPT_OVERRIDES.get(candidate)
+            if override:
+                item["jlpt_level_estimate"] = override
+                break
+        """
+
     def _fill_missing_vocab_fields(self, vocab_items: list[dict[str, Any]], *, target_language: str) -> None:
         missing_indexes = [
             idx for idx, item in enumerate(vocab_items)
