@@ -32,3 +32,8 @@ def build_article_service(api_key: str, base_url: str, model: str) -> tuple[Arti
     article_service = ArticleService()
     transcription_service = TranscriptService()
     return article_service, transcription_service
+
+@app.post("/api/article/{article_id}/delete")
+def api_delete_article(article_id: int) -> dict[str, Any]:
+    db.delete_article(article_id)
+    return {"ok": True}
