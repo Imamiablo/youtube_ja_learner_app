@@ -40,7 +40,7 @@ class LLMService:
         target language: any language model knows
         """
         if not self.enabled or not segments:
-            return ("") * len(segments)
+            return [""] * len(segments)
 
         numbered_segments = [{"index": i, "text": text} for i, text in enumerate(segments)]
         system_prompt = (
