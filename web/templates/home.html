@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Japanese Study App</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <main class="container">
+    <div class="header-row hero">
+      <div>
+        <div class="eyebrow">Unified local app</div>
+        <h1>Japanese Study App</h1>
+        <div class="muted">Generate articles, browse vocabulary, and use synced watch mode under one roof.</div>
+      </div>
+    </div>
+    {% if error %}<div class="error">{{ error }}</div>{% endif %}
+    <div class="layout home-layout">
+      <section>
+        <form class="panel" method="post" action="/generate">
+          <div class="header-row"><h2>Generate a new article</h2><button class="button primary" type="submit">Generate article</button></div>
+          <div class="toggle-row source-mode-row">
+            <label class="toggle"><input type="radio" name="source_mode" value="youtube" checked> YouTube URL</label>
+            <label class="toggle"><input type="radio" name="source_mode" value="manual"> Paste transcript manually</label>
+          </div>
+          <div class="field-grid two-up">
+            <label class="field"><span>Article title</span><input type="text" name="article_title" placeholder="Leave empty to use the YouTube title"></label>
+            <label class="field"><span>Target language</span><input type="text" name="target_language" value="English" id="targetLanguageInput"></label>
+          </div>
+          <label class="field source-youtube"><span>YouTube URL</span><input type="text" name="youtube_url" placeholder="https://www.youtube.com/watch?v=..."></label>
+          <label class="field source-manual hidden"><span>Manual transcript</span><textarea name="manual_transcript" rows="10" placeholder="Paste Japanese transcript here"></textarea></label>
+          <div class="subpanel">
+            <div class="header-row"><h3>LLM settings</h3><div class="small muted">Optional, but useful for translations and glosses.</div></div>
+            <div class="field-grid three-up">
+              <label class="field"><span>Base URL</span><input type="text" name="base_url" value="http://localhost:11434/" id="baseUrlInput"></label>
+              <label class="field"><span>Model</span><input type="text" name="model" value="qwen3-coder:30b" id="modelInput"></label>
+              <label class="field"><span>API key</span><input type="password" name="api_key" id="apiKeyInput"></label>
+            </div>
+          </div>
+        </form>
+      </section>
+      <aside>
+        <div class="panel">
+          <div class="header-row"><h2>Library</h2><div class="badge">{{ articles|length }} saved</div></div>
+          <div class="card-list">
+            {% for article in articles %}
+              <a class="panel link-card article-card" href="/article/{{ article.id }}">
+                <div class="card-title">{{ article.title }}</div>
+                <div class="muted small">{{ article.source_type }} · {{ article.created_at }}</div>
+                <div class="muted small truncate">{{ article.source_value }}</div>
+              </a>
+            {% else %}
+              <div class="muted">No articles yet. Generate the first one on the left ✨</div>
+            {% endfor %}
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+  <script>
+    const radios = [...document.querySelectorAll('input[name="source_mode"]')];
+    const yt = document.querySelector('.source-youtube');
+    const manual = document.querySelector('.source-manual');
+    function syncMode() {
+      const mode = radios.find(r => r.checked)?.value || 'youtube';
+      yt.classList.toggle('hidden', mode !== 'youtube');
+      manual.classList.toggle('hidden', mode !== 'manual');
+    }
+    radios.forEach(r => r.addEventListener('change', syncMode));
+    syncMode();
+  </script>
+</body>
+</html>

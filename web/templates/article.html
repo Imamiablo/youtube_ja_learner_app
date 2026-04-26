@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ article.title }}</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <div id="app"
+       data-article-id="{{ article.id }}"
+       data-video-id="{{ video_id }}"
+       data-source-value="{{ article.source_value }}"
+       data-default-base-url="{{ default_base_url }}"
+       data-default-model="{{ default_model }}"
+       data-default-target-language="{{ default_target_language }}"></div>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
